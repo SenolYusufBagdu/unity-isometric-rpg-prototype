@@ -40,10 +40,18 @@ public class PlayerMouseRotation : MonoBehaviour
 
     void Update()
     {
+        // Dash sırasında hiç dokunma
         if (playerDash != null && playerDash.IsDashing) return;
-        if (playerAttack != null && playerAttack.IsCasting) return;
-        if (playerAttack != null && playerAttack.IsAiming) return; // Nişan sırasında sol tık hareketi yok
 
+        // Büyü veya nişan sırasında kilitle
+        if (playerAttack != null && (playerAttack.IsCasting || playerAttack.IsAiming))
+        {
+            animator.SetFloat(SpeedHash, 0f);
+            isMovingToTarget = false;
+            return;
+        }
+
+        // Sol tık ile hedef belirle
         if (Input.GetMouseButton(0))
         {
             Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
@@ -55,21 +63,27 @@ public class PlayerMouseRotation : MonoBehaviour
             }
         }
 
-        Vector3 horizontalVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
-        animator.SetFloat(SpeedHash, horizontalVelocity.magnitude);
+        Vector3 hVel = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
+        animator.SetFloat(SpeedHash, hVel.magnitude);
     }
 
     void FixedUpdate()
     {
+        // Dash sırasında hiç dokunma — PlayerDash kendi hızını yönetiyor
+        if (playerDash != null && playerDash.IsDashing) return;
+
+        // Büyü veya nişan sırasında anında durdur
+        if (playerAttack != null && (playerAttack.IsCasting || playerAttack.IsAiming))
+        {
+            rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
+            return;
+        }
+
         if (isMovingToTarget) MoveToTarget();
     }
 
     void MoveToTarget()
     {
-        if (playerDash != null && playerDash.IsDashing) { isMovingToTarget = false; return; }
-        if (playerAttack != null && playerAttack.IsCasting) { isMovingToTarget = false; return; }
-        if (playerAttack != null && playerAttack.IsAiming) { isMovingToTarget = false; return; }
-
         float distance = Vector3.Distance(transform.position, clickTarget);
 
         if (distance < stopDistance)
@@ -82,7 +96,8 @@ public class PlayerMouseRotation : MonoBehaviour
         Vector3 dir = (clickTarget - transform.position).normalized;
         dir.y = 0f;
 
-        transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), rotationSpeed * Time.fixedDeltaTime);
+        transform.rotation = Quaternion.Slerp(
+            transform.rotation, Quaternion.LookRotation(dir), rotationSpeed * Time.fixedDeltaTime);
         rb.linearVelocity = new Vector3(dir.x * moveSpeed, rb.linearVelocity.y, dir.z * moveSpeed);
     }
 

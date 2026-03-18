@@ -9863,11 +9863,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameHUD
   playerHealth: {fileID: 1914108281}
+  playerAttack: {fileID: 1914108285}
   barColor: {r: 0.18, g: 0.85, b: 0.44, a: 1}
   barLowColor: {r: 0.92, g: 0.22, b: 0.22, a: 1}
   barBgColor: {r: 0.08, g: 0.08, b: 0.1, a: 0.85}
   panelColor: {r: 0.05, g: 0.05, b: 0.08, a: 0.9}
   flashColor: {r: 0.92, g: 0.22, b: 0.22, a: 0.35}
+  spellQColor: {r: 0.2, g: 0.75, b: 1, a: 1}
+  spellWColor: {r: 1, g: 0.45, b: 0.1, a: 1}
+  spellBgColor: {r: 0.08, g: 0.08, b: 0.12, a: 0.9}
+  spellReadyColor: {r: 1, g: 1, b: 1, a: 0.15}
   flashDuration: 0.25
 --- !u!114 &1792612802
 MonoBehaviour:

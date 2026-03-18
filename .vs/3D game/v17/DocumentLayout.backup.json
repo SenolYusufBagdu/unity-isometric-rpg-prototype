@@ -3,16 +3,24 @@
   "WorkspaceRootPath": "C:\\Users\\yusuf\\3D game\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{3C3E1573-A68B-562B-4E5F-E5FFB905BF81}|Assembly-CSharp.csproj|C:\\Users\\yusuf\\3D game\\assets\\script\\player\\playerattack.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3C3E1573-A68B-562B-4E5F-E5FFB905BF81}|Assembly-CSharp.csproj|solutionrelative:assets\\script\\player\\playerattack.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{3C3E1573-A68B-562B-4E5F-E5FFB905BF81}|Assembly-CSharp.csproj|c:\\users\\yusuf\\3d game\\assets\\script\\gamehud.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{3C3E1573-A68B-562B-4E5F-E5FFB905BF81}|Assembly-CSharp.csproj|solutionrelative:assets\\script\\gamehud.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{3C3E1573-A68B-562B-4E5F-E5FFB905BF81}|Assembly-CSharp.csproj|c:\\users\\yusuf\\3d game\\assets\\script\\projectile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{3C3E1573-A68B-562B-4E5F-E5FFB905BF81}|Assembly-CSharp.csproj|solutionrelative:assets\\script\\projectile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{3C3E1573-A68B-562B-4E5F-E5FFB905BF81}|Assembly-CSharp.csproj|c:\\users\\yusuf\\3d game\\assets\\script\\enemy\\enemyhealthbar.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3C3E1573-A68B-562B-4E5F-E5FFB905BF81}|Assembly-CSharp.csproj|solutionrelative:assets\\script\\enemy\\enemyhealthbar.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{3C3E1573-A68B-562B-4E5F-E5FFB905BF81}|Assembly-CSharp.csproj|C:\\Users\\yusuf\\3D game\\assets\\script\\player\\playerattack.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{3C3E1573-A68B-562B-4E5F-E5FFB905BF81}|Assembly-CSharp.csproj|solutionrelative:assets\\script\\player\\playerattack.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{3C3E1573-A68B-562B-4E5F-E5FFB905BF81}|Assembly-CSharp.csproj|C:\\Users\\yusuf\\3D game\\assets\\script\\enemy\\enemyhealth.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3C3E1573-A68B-562B-4E5F-E5FFB905BF81}|Assembly-CSharp.csproj|solutionrelative:assets\\script\\enemy\\enemyhealth.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3C3E1573-A68B-562B-4E5F-E5FFB905BF81}|Assembly-CSharp.csproj|C:\\Users\\yusuf\\3D game\\assets\\script\\projectile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3C3E1573-A68B-562B-4E5F-E5FFB905BF81}|Assembly-CSharp.csproj|solutionrelative:assets\\script\\projectile.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{3C3E1573-A68B-562B-4E5F-E5FFB905BF81}|Assembly-CSharp.csproj|C:\\Users\\yusuf\\3D game\\assets\\script\\aimindicator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -33,10 +41,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{3C3E1573-A68B-562B-4E5F-E5FFB905BF81}|Assembly-CSharp.csproj|C:\\Users\\yusuf\\3D game\\assets\\script\\player\\yeni\\playerdash.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{3C3E1573-A68B-562B-4E5F-E5FFB905BF81}|Assembly-CSharp.csproj|solutionrelative:assets\\script\\player\\yeni\\playerdash.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{3C3E1573-A68B-562B-4E5F-E5FFB905BF81}|Assembly-CSharp.csproj|C:\\Users\\yusuf\\3D game\\assets\\script\\enemy\\enemyhealth.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{3C3E1573-A68B-562B-4E5F-E5FFB905BF81}|Assembly-CSharp.csproj|solutionrelative:assets\\script\\enemy\\enemyhealth.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{3C3E1573-A68B-562B-4E5F-E5FFB905BF81}|Assembly-CSharp.csproj|C:\\Users\\yusuf\\3D game\\assets\\script\\enemy\\enemyai.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -70,24 +74,37 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 6,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 2,
+              "Title": "EnemyHealthBar.cs",
+              "DocumentMoniker": "C:\\Users\\yusuf\\3D game\\Assets\\Script\\Enemy\\EnemyHealthBar.cs",
+              "RelativeDocumentMoniker": "Assets\\Script\\Enemy\\EnemyHealthBar.cs",
+              "ToolTip": "C:\\Users\\yusuf\\3D game\\Assets\\Script\\Enemy\\EnemyHealthBar.cs",
+              "RelativeToolTip": "Assets\\Script\\Enemy\\EnemyHealthBar.cs",
+              "ViewState": "AgIAAMkAAAAAAAAAAAAQwOwAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-17T14:28:47.719Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "GameHUD.cs",
               "DocumentMoniker": "C:\\Users\\yusuf\\3D game\\Assets\\Script\\GameHUD.cs",
               "RelativeDocumentMoniker": "Assets\\Script\\GameHUD.cs",
               "ToolTip": "C:\\Users\\yusuf\\3D game\\Assets\\Script\\GameHUD.cs",
               "RelativeToolTip": "Assets\\Script\\GameHUD.cs",
-              "ViewState": "AgIAAH0BAAAAAAAAAAAQwKABAAABAAAAAAAAAA==",
+              "ViewState": "AgIAALcAAAAAAAAAAAAQwNQAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-03-17T14:12:57.894Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 5,
               "Title": "Aimindicator.cs",
               "DocumentMoniker": "C:\\Users\\yusuf\\3D game\\Assets\\Script\\Aimindicator.cs",
               "RelativeDocumentMoniker": "Assets\\Script\\Aimindicator.cs",
@@ -99,7 +116,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 9,
               "Title": "PlayerDash.cs",
               "DocumentMoniker": "C:\\Users\\yusuf\\3D game\\Assets\\Script\\Player\\yeni\\PlayerDash.cs",
               "RelativeDocumentMoniker": "Assets\\Script\\Player\\yeni\\PlayerDash.cs",
@@ -111,7 +128,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 4,
               "Title": "Projectile.cs",
               "DocumentMoniker": "C:\\Users\\yusuf\\3D game\\Assets\\Script\\Projectile.cs",
               "RelativeDocumentMoniker": "Assets\\Script\\Projectile.cs",
@@ -119,12 +136,11 @@
               "RelativeToolTip": "Assets\\Script\\Projectile.cs",
               "ViewState": "AgIAACsAAAAAAAAAAAAQwE4AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-02T07:23:46.914Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-02T07:23:46.914Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 14,
               "Title": "PlayerHealth.cs",
               "DocumentMoniker": "C:\\Users\\yusuf\\3D game\\Assets\\Script\\Player\\PlayerHealth.cs",
               "RelativeDocumentMoniker": "Assets\\Script\\Player\\PlayerHealth.cs",
@@ -136,31 +152,33 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 0,
               "Title": "PlayerAttack.cs",
               "DocumentMoniker": "C:\\Users\\yusuf\\3D game\\Assets\\Script\\Player\\PlayerAttack.cs",
               "RelativeDocumentMoniker": "Assets\\Script\\Player\\PlayerAttack.cs",
               "ToolTip": "C:\\Users\\yusuf\\3D game\\Assets\\Script\\Player\\PlayerAttack.cs",
               "RelativeToolTip": "Assets\\Script\\Player\\PlayerAttack.cs",
-              "ViewState": "AgIAAM8AAAAAAAAAAAAQwPIAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAOkAAAAAAAAAAAAQwAwBAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-02T06:07:27.429Z"
+              "WhenOpened": "2026-03-02T06:07:27.429Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 3,
               "Title": "EnemyHealth.cs",
               "DocumentMoniker": "C:\\Users\\yusuf\\3D game\\Assets\\Script\\Enemy\\EnemyHealth.cs",
               "RelativeDocumentMoniker": "Assets\\Script\\Enemy\\EnemyHealth.cs",
               "ToolTip": "C:\\Users\\yusuf\\3D game\\Assets\\Script\\Enemy\\EnemyHealth.cs",
               "RelativeToolTip": "Assets\\Script\\Enemy\\EnemyHealth.cs",
-              "ViewState": "AgIAABoAAAAAAAAAAAAiwDQAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAABsAAAAAAAAAAAAQwD4AAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-01T14:12:43.034Z"
+              "WhenOpened": "2026-03-01T14:12:43.034Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 10,
               "Title": "EnemyAI.cs",
               "DocumentMoniker": "C:\\Users\\yusuf\\3D game\\Assets\\Script\\Enemy\\EnemyAI.cs",
               "RelativeDocumentMoniker": "Assets\\Script\\Enemy\\EnemyAI.cs",
@@ -172,7 +190,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 7,
               "Title": "PlayerMovement.cs",
               "DocumentMoniker": "C:\\Users\\yusuf\\3D game\\Assets\\Script\\Player\\PlayerMovement.cs",
               "RelativeDocumentMoniker": "Assets\\Script\\Player\\PlayerMovement.cs",
@@ -184,7 +202,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 12,
               "Title": "IsometricCamera.cs",
               "DocumentMoniker": "C:\\Users\\yusuf\\3D game\\Assets\\Script\\IsometricCamera.cs",
               "RelativeDocumentMoniker": "Assets\\Script\\IsometricCamera.cs",
@@ -196,7 +214,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 11,
               "Title": "DashHitbox.cs",
               "DocumentMoniker": "C:\\Users\\yusuf\\3D game\\Assets\\Script\\Player\\DashHitbox.cs",
               "RelativeDocumentMoniker": "Assets\\Script\\Player\\DashHitbox.cs",
@@ -208,7 +226,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 6,
               "Title": "PlayerMouseRotation.cs",
               "DocumentMoniker": "C:\\Users\\yusuf\\3D game\\Assets\\Script\\Player\\PlayerMouseRotation.cs",
               "RelativeDocumentMoniker": "Assets\\Script\\Player\\PlayerMouseRotation.cs",
@@ -220,7 +238,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 8,
               "Title": "SwordDamage.cs",
               "DocumentMoniker": "C:\\Users\\yusuf\\3D game\\Assets\\Script\\SwordDamage.cs",
               "RelativeDocumentMoniker": "Assets\\Script\\SwordDamage.cs",
@@ -232,7 +250,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 13,
               "Title": "PlayerMouseDirection.cs",
               "DocumentMoniker": "C:\\Users\\yusuf\\3D game\\Assets\\Script\\Player\\yeni\\PlayerMouseDirection.cs",
               "RelativeDocumentMoniker": "Assets\\Script\\Player\\yeni\\PlayerMouseDirection.cs",
@@ -244,7 +262,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 15,
               "Title": "CameraFollow.cs",
               "DocumentMoniker": "C:\\Users\\yusuf\\3D game\\Assets\\Script\\CameraFollow.cs",
               "RelativeDocumentMoniker": "Assets\\Script\\CameraFollow.cs",

@@ -3,45 +3,40 @@
 /// <summary>
 /// PlayerAttack.cs
 ///
-/// BÜYÜ MEKANİĞİ:
-/// - Q ve W SADECE sağ tık nişan alındıktan sonra çalışır
-/// - Sağ tık basılı → nişan al → Q veya W bas → sağ tıktan el çek → ateşle
-/// - Sağ tık olmadan Q/W basmak hiçbir şey yapmaz
-/// - Kılıç (E) her zaman çalışır, sağ tıktan bağımsız
-///
-/// NİŞAN DÜZELTMESİ:
-/// - Önce groundLayer'a bakar, bulamazsa tüm collider'lara bakar
-/// - Enemy üstünde, boş alanda, her yerde nişan çalışır
-/// - Ground Layer atanmamış olsa bile çalışır
-///
-/// ANIMATION EVENTS:
-/// - Spell1 ve Spell2 animasyonlarının son karesine OnSpellEnd() ekle
+/// YENİ: Sol tıklanınca büyü animasyonu anında iptal edilir, karakter yürümeye başlar.
+/// Q ve W 1.5sn cooldown — sağ tık + Q/W ile kullanılır.
+/// E kılıç her zaman çalışır.
 /// </summary>
 [RequireComponent(typeof(Animator))]
 public class PlayerAttack : MonoBehaviour
 {
     [Header("Kılıç (E tuşu)")]
-    public float attackCooldown = 0.3f;
+    public float attackCooldown = 0.4f;
     public float comboWindow = 0.8f;
     public GameObject swordObject;
 
-    [Header("1. Büyü - Q tuşu (sağ tık gerekli)")]
+    [Header("1. Büyü - Q (sağ tık + Q, 1.5sn cooldown)")]
     public GameObject projectilePrefab;
     public Transform firePoint;
-    public float projectileCooldown = 0.5f;
+    public float projectileCooldown = 1.5f;
 
-    [Header("2. Büyü - W tuşu (sağ tık gerekli)")]
+    [Header("2. Büyü - W (sağ tık + W, 1.5sn cooldown)")]
     public GameObject fireballPrefab;
     public Transform fireballPoint;
-    public float fireballCooldown = 1f;
+    public float fireballCooldown = 1.5f;
 
     [Header("Nişan Alma")]
-    public LayerMask groundLayer;   // Atanmazsa da çalışır
+    public LayerMask groundLayer;
     public AimIndicator aimIndicator;
 
-    // Dışarıdan okunabilir
     public bool IsCasting => isCasting;
     public bool IsAiming => isAiming;
+    public bool IsAttacking => isAttacking;
+
+    public float LastProjectileTime => lastProjectileTime;
+    public float LastFireballTime => lastFireballTime;
+    public float ProjectileCooldown => projectileCooldown;
+    public float FireballCooldown => fireballCooldown;
 
     private Animator animator;
     private PlayerMouseRotation mouseRot;
@@ -51,12 +46,13 @@ public class PlayerAttack : MonoBehaviour
 
     private bool isCasting = false;
     private bool isAiming = false;
+    private bool isAttacking = false;
     private int comboStep = 0;
-    private int queuedSpell = 0; // 0=yok 1=Q 2=W
+    private int queuedSpell = 0;
 
-    private float lastAttackTime;
-    private float lastProjectileTime;
-    private float lastFireballTime;
+    private float lastAttackTime = -99f;
+    private float lastProjectileTime = -99f;
+    private float lastFireballTime = -99f;
 
     private static readonly int Attack1Hash = Animator.StringToHash("Attack1");
     private static readonly int Attack2Hash = Animator.StringToHash("Attack2");
@@ -73,32 +69,35 @@ public class PlayerAttack : MonoBehaviour
         if (swordObject != null)
         {
             swordDamage = swordObject.GetComponent<SwordDamage>();
-            if (swordDamage != null)
-                swordDamage.DisableDamage();
-            else
-                Debug.LogError("❌ SW08 üzerinde SwordDamage scripti yok!");
+            swordDamage?.DisableDamage();
         }
 
         if (aimIndicator == null)
             aimIndicator = GetComponent<AimIndicator>();
-
-        if (projectilePrefab == null) Debug.LogWarning("⚠️ Q Projectile Prefab atanmamış!");
-        if (firePoint == null) Debug.LogWarning("⚠️ Fire Point atanmamış!");
-        if (fireballPrefab == null) Debug.LogWarning("⚠️ W Fireball Prefab atanmamış!");
-        if (fireballPoint == null) Debug.LogWarning("⚠️ Fireball Point atanmamış!");
 
         Debug.Log("✅ PLAYER ATTACK: Hazır.");
     }
 
     void Update()
     {
+        // isAttacking otomatik timeout
+        if (isAttacking && Time.time >= lastAttackTime + attackCooldown + 0.05f)
+            isAttacking = false;
+
+        // SOL TIK BASINCA BÜYÜ İPTAL — animasyon kesilir, direkt yürür
+        if (Input.GetMouseButtonDown(0) && isCasting && !isAiming)
+        {
+            isCasting = false;
+            Debug.Log("🚶 Sol tık — büyü iptal, yürümeye geç");
+        }
+
         HandleAiming();
         if (isCasting) return;
         HandleCombo();
     }
 
     // =========================================================
-    // SAĞ TIK — NİŞAN ALMA
+    // SAĞ TIK — NİŞAN + BÜYÜ KUYRUĞU
     // =========================================================
 
     void HandleAiming()
@@ -108,7 +107,6 @@ public class PlayerAttack : MonoBehaviour
             isAiming = true;
             queuedSpell = 0;
             LockMovement();
-            Debug.Log("🎯 Nişan BAŞLADI");
         }
 
         if (isAiming)
@@ -117,15 +115,32 @@ public class PlayerAttack : MonoBehaviour
             RotateTowardsMouse();
             UpdateAimIndicator();
 
-            if (Input.GetKeyDown(KeyCode.Q) && Time.time >= lastProjectileTime + projectileCooldown)
+            if (Input.GetKeyDown(KeyCode.Q))
             {
-                queuedSpell = 1;
-                Debug.Log("⚡ Q sıraya alındı");
+                if (Time.time >= lastProjectileTime + projectileCooldown)
+                {
+                    queuedSpell = 1;
+                    Debug.Log("⚡ Q sıraya alındı");
+                }
+                else
+                {
+                    float kalan = (lastProjectileTime + projectileCooldown) - Time.time;
+                    Debug.Log($"⏳ Q cooldown: {kalan:F1}s kaldı");
+                }
             }
-            if (Input.GetKeyDown(KeyCode.W) && Time.time >= lastFireballTime + fireballCooldown)
+
+            if (Input.GetKeyDown(KeyCode.W))
             {
-                queuedSpell = 2;
-                Debug.Log("🔥 W sıraya alındı");
+                if (Time.time >= lastFireballTime + fireballCooldown)
+                {
+                    queuedSpell = 2;
+                    Debug.Log("🔥 W sıraya alındı");
+                }
+                else
+                {
+                    float kalan = (lastFireballTime + fireballCooldown) - Time.time;
+                    Debug.Log($"⏳ W cooldown: {kalan:F1}s kaldı");
+                }
             }
         }
 
@@ -133,7 +148,6 @@ public class PlayerAttack : MonoBehaviour
         {
             isAiming = false;
             aimIndicator?.Hide();
-            Debug.Log("🎯 Nişan BİTTİ");
 
             if (queuedSpell == 1)
             {
@@ -155,29 +169,24 @@ public class PlayerAttack : MonoBehaviour
     }
 
     // =========================================================
-    // RAYCAST — önce zemin, bulamazsa her şey
+    // RAYCAST
     // =========================================================
 
     bool GetMouseWorldPoint(out Vector3 point)
     {
         Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
 
-        // 1. Ground Layer atanmışsa önce zemine bak
-        if (groundLayer.value != 0)
+        if (groundLayer.value != 0 &&
+            Physics.Raycast(ray, out RaycastHit hitGround, 200f, groundLayer))
         {
-            if (Physics.Raycast(ray, out RaycastHit hitGround, 200f, groundLayer))
-            {
-                point = hitGround.point;
-                return true;
-            }
+            point = hitGround.point;
+            return true;
         }
 
-        // 2. Zemin bulunamadı veya layer atanmamış — her şeye bak
-        // Enemy üstünde, nesne üstünde, boş alanda hepsi çalışır
         if (Physics.Raycast(ray, out RaycastHit hitAny, 200f))
         {
             point = hitAny.point;
-            point.y = transform.position.y; // Çemberi yere sabitle
+            point.y = transform.position.y;
             return true;
         }
 
@@ -187,25 +196,23 @@ public class PlayerAttack : MonoBehaviour
 
     void RotateTowardsMouse()
     {
-        if (!GetMouseWorldPoint(out Vector3 hitPoint)) return;
-        Vector3 dir = hitPoint - transform.position;
+        if (!GetMouseWorldPoint(out Vector3 hit)) return;
+        Vector3 dir = hit - transform.position;
         dir.y = 0f;
         if (dir.sqrMagnitude > 0.01f)
             transform.rotation = Quaternion.Slerp(
-                transform.rotation,
-                Quaternion.LookRotation(dir),
-                20f * Time.deltaTime);
+                transform.rotation, Quaternion.LookRotation(dir), 20f * Time.deltaTime);
     }
 
     void UpdateAimIndicator()
     {
         if (aimIndicator == null) return;
-        if (GetMouseWorldPoint(out Vector3 hitPoint))
-            aimIndicator.Show(hitPoint);
+        if (GetMouseWorldPoint(out Vector3 hit))
+            aimIndicator.Show(hit);
     }
 
     // =========================================================
-    // KILIÇ COMBO — sağ tıktan bağımsız
+    // KILIÇ COMBO
     // =========================================================
 
     void HandleCombo()
@@ -218,8 +225,20 @@ public class PlayerAttack : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.E) && Time.time >= lastAttackTime + attackCooldown)
         {
             lastAttackTime = Time.time;
-            if (comboStep == 0) { comboStep = 1; animator.SetTrigger(Attack1Hash); Debug.Log("⚔️ Attack 1"); }
-            else { comboStep = 0; animator.SetTrigger(Attack2Hash); Debug.Log("⚔️⚔️ Attack 2"); }
+            isAttacking = true;
+
+            if (comboStep == 0)
+            {
+                comboStep = 1;
+                animator.SetTrigger(Attack1Hash);
+                Debug.Log("⚔️ Attack 1");
+            }
+            else
+            {
+                comboStep = 0;
+                animator.SetTrigger(Attack2Hash);
+                Debug.Log("⚔️⚔️ Attack 2");
+            }
         }
     }
 
@@ -239,16 +258,12 @@ public class PlayerAttack : MonoBehaviour
         LockMovement();
     }
 
-    // Animation Event — Spell1 ve Spell2 animasyonlarının son karesine ekle
-    public void OnSpellEnd()
-    {
-        isCasting = false;
-        Debug.Log("✅ Büyü bitti — hareket açıldı");
-    }
-
     // =========================================================
     // ANIMATION EVENTS
     // =========================================================
+
+    public void OnAttackEnd() { isAttacking = false; }
+    public void OnSpellEnd() { isCasting = false; }
 
     public void SpawnProjectile()
     {
