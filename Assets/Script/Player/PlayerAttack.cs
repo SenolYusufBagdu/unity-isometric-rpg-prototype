@@ -1,12 +1,5 @@
 ﻿using UnityEngine;
 
-/// <summary>
-/// PlayerAttack.cs
-///
-/// YENİ: Sol tıklanınca büyü animasyonu anında iptal edilir, karakter yürümeye başlar.
-/// Q ve W 1.5sn cooldown — sağ tık + Q/W ile kullanılır.
-/// E kılıç her zaman çalışır.
-/// </summary>
 [RequireComponent(typeof(Animator))]
 public class PlayerAttack : MonoBehaviour
 {
@@ -14,6 +7,15 @@ public class PlayerAttack : MonoBehaviour
     public float attackCooldown = 0.4f;
     public float comboWindow = 0.8f;
     public GameObject swordObject;
+
+    [Header("Ok / Yay (A tuşu)")]
+    public GameObject bowObject;
+    public GameObject arrowPrefab;
+    public Transform arrowFirePoint;
+    public float arrowCooldown = 0.6f;
+    public float arrowSpeed = 25f;
+    public float arrowDamage = 20f;
+    public float arrowSpawnDelay = 0.3f; // Animasyonun kaçıncı saniyesinde ok fırlar
 
     [Header("1. Büyü - Q (sağ tık + Q, 1.5sn cooldown)")]
     public GameObject projectilePrefab;
@@ -29,15 +31,17 @@ public class PlayerAttack : MonoBehaviour
     public LayerMask groundLayer;
     public AimIndicator aimIndicator;
 
+    // Public properties
     public bool IsCasting => isCasting;
     public bool IsAiming => isAiming;
     public bool IsAttacking => isAttacking;
-
+    public bool IsBowMode => isBowMode;
     public float LastProjectileTime => lastProjectileTime;
     public float LastFireballTime => lastFireballTime;
     public float ProjectileCooldown => projectileCooldown;
     public float FireballCooldown => fireballCooldown;
 
+    // Private
     private Animator animator;
     private PlayerMouseRotation mouseRot;
     private Rigidbody rb;
@@ -47,17 +51,24 @@ public class PlayerAttack : MonoBehaviour
     private bool isCasting = false;
     private bool isAiming = false;
     private bool isAttacking = false;
+    private bool isBowMode = false;
+    private bool isSwitching = false;
+
     private int comboStep = 0;
     private int queuedSpell = 0;
 
     private float lastAttackTime = -99f;
     private float lastProjectileTime = -99f;
     private float lastFireballTime = -99f;
+    private float lastArrowTime = -99f;
 
     private static readonly int Attack1Hash = Animator.StringToHash("Attack1");
     private static readonly int Attack2Hash = Animator.StringToHash("Attack2");
     private static readonly int Spell1Hash = Animator.StringToHash("Spell1");
     private static readonly int Spell2Hash = Animator.StringToHash("Spell2");
+    private static readonly int SwordSheatheHash = Animator.StringToHash("SwordSheathe");
+    private static readonly int SwordDrawHash = Animator.StringToHash("SwordDraw");
+    private static readonly int ArrowHash = Animator.StringToHash("Arrow");
 
     void Start()
     {
@@ -68,8 +79,14 @@ public class PlayerAttack : MonoBehaviour
 
         if (swordObject != null)
         {
+            swordObject.SetActive(true); // Kılıcın oyun başında aktif olmasını garanti ettik
             swordDamage = swordObject.GetComponent<SwordDamage>();
             swordDamage?.DisableDamage();
+        }
+
+        if (bowObject != null)
+        {
+            bowObject.SetActive(false); // Yayın oyun başında KESİN OLARAK kapalı olmasını sağladık
         }
 
         if (aimIndicator == null)
@@ -80,25 +97,112 @@ public class PlayerAttack : MonoBehaviour
 
     void Update()
     {
-        // isAttacking otomatik timeout
         if (isAttacking && Time.time >= lastAttackTime + attackCooldown + 0.05f)
             isAttacking = false;
 
-        // SOL TIK BASINCA BÜYÜ İPTAL — animasyon kesilir, direkt yürür
         if (Input.GetMouseButtonDown(0) && isCasting && !isAiming)
         {
             isCasting = false;
-            Debug.Log("🚶 Sol tık — büyü iptal, yürümeye geç");
+        }
+
+        // A tuşu → Ok moduna geç
+        if (Input.GetKeyDown(KeyCode.A) && !isBowMode && !isSwitching && !isCasting && !isAiming)
+        {
+            StartCoroutine(SwitchToBow());
+            return;
+        }
+
+        // A tuşu (ok modundayken) → ok at
+        if (Input.GetKeyDown(KeyCode.A) && isBowMode && !isSwitching)
+        {
+            if (Time.time >= lastArrowTime + arrowCooldown)
+            {
+                lastArrowTime = Time.time;
+                RotateTowardsMouse();
+                animator.SetTrigger(ArrowHash);
+
+                // Animation Event yerine Invoke — arrowSpawnDelay saniye sonra oku fırlat
+                CancelInvoke(nameof(SpawnArrow));
+                Invoke(nameof(SpawnArrow), arrowSpawnDelay);
+
+                Debug.Log("🏹 Ok ateşlendi!");
+            }
+            else
+            {
+                float kalan = (lastArrowTime + arrowCooldown) - Time.time;
+                Debug.Log($"⏳ Ok cooldown: {kalan:F1}s kaldı");
+            }
+            return;
+        }
+
+        // E tuşu (ok modundayken) → kılıç moduna dön
+        if (Input.GetKeyDown(KeyCode.E) && isBowMode && !isSwitching)
+        {
+            StartCoroutine(SwitchToSword());
+            return;
         }
 
         HandleAiming();
         if (isCasting) return;
-        HandleCombo();
+        if (!isBowMode) HandleCombo();
     }
 
-    // =========================================================
-    // SAĞ TIK — NİŞAN + BÜYÜ KUYRUĞU
-    // =========================================================
+    // ── MOD GEÇİŞLERİ ──────────────────────────────────────
+
+    System.Collections.IEnumerator SwitchToBow()
+    {
+        isSwitching = true;
+        LockMovement();
+        Debug.Log("🗡→🏹 Kılıç kılıfa giriyor...");
+
+        animator.SetTrigger(SwordSheatheHash);
+        yield return new WaitForSeconds(0.05f);
+
+        float sheatheWait = GetAnimationLength("SwordSheathe");
+        if (sheatheWait <= 0f) sheatheWait = 0.6f;
+        yield return new WaitForSeconds(sheatheWait);
+
+        if (swordObject != null) swordObject.SetActive(false);
+        if (bowObject != null) bowObject.SetActive(true);
+
+        isBowMode = true;
+        isSwitching = false;
+        Debug.Log("✅ Yay modu aktif!");
+    }
+
+    System.Collections.IEnumerator SwitchToSword()
+    {
+        isSwitching = true;
+        LockMovement();
+        Debug.Log("🏹→🗡 Kılıç çekiliyor...");
+
+        if (bowObject != null) bowObject.SetActive(false);
+        if (swordObject != null) swordObject.SetActive(true);
+        animator.SetTrigger(SwordDrawHash);
+
+        yield return new WaitForSeconds(0.05f);
+
+        float drawWait = GetAnimationLength("SwordDraw");
+        if (drawWait <= 0f) drawWait = 0.5f;
+        yield return new WaitForSeconds(drawWait);
+
+        isBowMode = false;
+        isSwitching = false;
+        comboStep = 0;
+        Debug.Log("✅ Kılıç modu aktif!");
+    }
+
+    float GetAnimationLength(string stateName)
+    {
+        if (animator == null) return 0f;
+        RuntimeAnimatorController rac = animator.runtimeAnimatorController;
+        if (rac == null) return 0f;
+        foreach (AnimationClip clip in rac.animationClips)
+            if (clip.name == stateName) return clip.length * 0.85f;
+        return 0f;
+    }
+
+    // ── BÜYÜ / NİŞAN ALMA ───────────────────────────────────
 
     void HandleAiming()
     {
@@ -168,10 +272,6 @@ public class PlayerAttack : MonoBehaviour
         }
     }
 
-    // =========================================================
-    // RAYCAST
-    // =========================================================
-
     bool GetMouseWorldPoint(out Vector3 point)
     {
         Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
@@ -211,10 +311,6 @@ public class PlayerAttack : MonoBehaviour
             aimIndicator.Show(hit);
     }
 
-    // =========================================================
-    // KILIÇ COMBO
-    // =========================================================
-
     void HandleCombo()
     {
         if (isAiming) return;
@@ -242,10 +338,6 @@ public class PlayerAttack : MonoBehaviour
         }
     }
 
-    // =========================================================
-    // YARDIMCI
-    // =========================================================
-
     void LockMovement()
     {
         mouseRot?.CancelTarget();
@@ -258,9 +350,7 @@ public class PlayerAttack : MonoBehaviour
         LockMovement();
     }
 
-    // =========================================================
-    // ANIMATION EVENTS
-    // =========================================================
+    // ── ANIMATION EVENTS ────────────────────────────────────
 
     public void OnAttackEnd() { isAttacking = false; }
     public void OnSpellEnd() { isCasting = false; }
@@ -281,4 +371,27 @@ public class PlayerAttack : MonoBehaviour
 
     public void EnableSwordDamage() { swordDamage?.EnableDamage(); }
     public void DisableSwordDamage() { swordDamage?.DisableDamage(); }
+
+    // ── OK SPAWN (Invoke ile çağrılır) ──────────────────────
+
+    public void SpawnArrow()
+    {
+        if (arrowPrefab == null)
+        {
+            Debug.LogError("❌ arrowPrefab atanmamış! PlayerAttack Inspector'ını kontrol et.");
+            return;
+        }
+
+        Transform spawnPoint = arrowFirePoint != null ? arrowFirePoint : transform;
+        GameObject arrowGO = Instantiate(arrowPrefab, spawnPoint.position, transform.rotation);
+
+        ArrowProjectile ap = arrowGO.GetComponent<ArrowProjectile>();
+        if (ap != null)
+        {
+            ap.damage = arrowDamage;
+            ap.speed = arrowSpeed;
+        }
+
+        Debug.Log("🏹 Ok fırlatıldı!");
+    }
 }
