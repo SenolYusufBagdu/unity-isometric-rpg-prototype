@@ -1,0 +1,175 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1663238263985618
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7838282415990077155}
+  - component: {fileID: 1689773371156777870}
+  - component: {fileID: 4612335589707724915}
+  - component: {fileID: 6779234377305381578}
+  m_Layer: 0
+  m_Name: AroowFix 2
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7838282415990077155
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1663238263985618}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 31.561, y: -27.86966, z: 65.24137}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1840626300661196362}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!54 &1689773371156777870
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1663238263985618}
+  serializedVersion: 5
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 0
+  m_IsKinematic: 1
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!114 &4612335589707724915
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1663238263985618}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0bf5cef00a9e6694cb53fa631b0d224d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ArrowProjectile
+  speed: 25
+  maxDistance: 40
+  maxLifetime: 5
+  damage: 20
+  knockbackDistance: 2
+  knockbackDuration: 0.15
+  stickDuration: 1
+--- !u!65 &6779234377305381578
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1663238263985618}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.16, y: 0.1, z: 0.38}
+  m_Center: {x: 0.18, y: 0, z: -0.16}
+--- !u!1001 &3084696697504802649
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 7838282415990077155}
+    m_Modifications:
+    - target: {fileID: 3694144199658659123, guid: 53525b91c7b4fc74994265f798074fde, type: 3}
+      propertyPath: m_Name
+      value: ArrowShortBarbed
+      objectReference: {fileID: 0}
+    - target: {fileID: 3694144199659012371, guid: 53525b91c7b4fc74994265f798074fde, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.17268181
+      objectReference: {fileID: 0}
+    - target: {fileID: 3694144199659012371, guid: 53525b91c7b4fc74994265f798074fde, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3694144199659012371, guid: 53525b91c7b4fc74994265f798074fde, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0.202919
+      objectReference: {fileID: 0}
+    - target: {fileID: 3694144199659012371, guid: 53525b91c7b4fc74994265f798074fde, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3694144199659012371, guid: 53525b91c7b4fc74994265f798074fde, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3694144199659012371, guid: 53525b91c7b4fc74994265f798074fde, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3694144199659012371, guid: 53525b91c7b4fc74994265f798074fde, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 3694144199659012371, guid: 53525b91c7b4fc74994265f798074fde, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3694144199659012371, guid: 53525b91c7b4fc74994265f798074fde, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: -90
+      objectReference: {fileID: 0}
+    - target: {fileID: 3694144199659012371, guid: 53525b91c7b4fc74994265f798074fde, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: -90
+      objectReference: {fileID: 0}
+    - target: {fileID: 3958947721992545831, guid: 53525b91c7b4fc74994265f798074fde, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4389510488371495180, guid: 53525b91c7b4fc74994265f798074fde, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents:
+    - {fileID: 8053247245992327898, guid: 53525b91c7b4fc74994265f798074fde, type: 3}
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 53525b91c7b4fc74994265f798074fde, type: 3}
+--- !u!4 &1840626300661196362 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3694144199659012371, guid: 53525b91c7b4fc74994265f798074fde, type: 3}
+  m_PrefabInstance: {fileID: 3084696697504802649}
+  m_PrefabAsset: {fileID: 0}

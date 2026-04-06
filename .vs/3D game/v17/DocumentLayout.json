@@ -1,0 +1,54 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\yusuf\\3D game\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{3C3E1573-A68B-562B-4E5F-E5FFB905BF81}|Assembly-CSharp.csproj|c:\\users\\yusuf\\3d game\\assets\\script\\daynightcycle.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3C3E1573-A68B-562B-4E5F-E5FFB905BF81}|Assembly-CSharp.csproj|solutionrelative:assets\\script\\daynightcycle.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{3C3E1573-A68B-562B-4E5F-E5FFB905BF81}|Assembly-CSharp.csproj|c:\\users\\yusuf\\3d game\\assets\\script\\cinematicpan.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{3C3E1573-A68B-562B-4E5F-E5FFB905BF81}|Assembly-CSharp.csproj|solutionrelative:assets\\script\\cinematicpan.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Daynightcycle.cs",
+              "DocumentMoniker": "C:\\Users\\yusuf\\3D game\\Assets\\Script\\Daynightcycle.cs",
+              "RelativeDocumentMoniker": "Assets\\Script\\Daynightcycle.cs",
+              "ToolTip": "C:\\Users\\yusuf\\3D game\\Assets\\Script\\Daynightcycle.cs",
+              "RelativeToolTip": "Assets\\Script\\Daynightcycle.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-31T22:11:55.449Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "CinematicPan.cs",
+              "DocumentMoniker": "C:\\Users\\yusuf\\3D game\\Assets\\Script\\CinematicPan.cs",
+              "RelativeDocumentMoniker": "Assets\\Script\\CinematicPan.cs",
+              "ToolTip": "C:\\Users\\yusuf\\3D game\\Assets\\Script\\CinematicPan.cs",
+              "RelativeToolTip": "Assets\\Script\\CinematicPan.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-31T21:45:22.72Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

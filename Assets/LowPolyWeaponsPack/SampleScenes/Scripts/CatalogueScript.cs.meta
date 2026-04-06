@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: c006c0489e961c54c8d56bddb2d0437d
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 193163
+  packageName: Massive Low Poly Weapons Pack
+  packageVersion: 1.0
+  assetPath: Assets/LowPolyWeaponsPack/SampleScenes/Scripts/CatalogueScript.cs
+  uploadId: 427767
