@@ -14,6 +14,7 @@
 /// - 4 yön çizgisi (crosshair)
 /// - Hepsi pulse animasyonuyla titreşir
 /// </summary>
+// Git e-posta ayarı test edildi.
 public class AimIndicator : MonoBehaviour
 {
     [Header("Referans")]
