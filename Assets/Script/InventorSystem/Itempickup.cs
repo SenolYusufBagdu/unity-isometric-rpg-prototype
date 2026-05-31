@@ -56,14 +56,24 @@ public class ItemPickup : MonoBehaviour
 
     void TryPickup()
     {
-        if (Inventory.Instance == null) return;
         if (itemData == null) return;
+
+        // Inventory yoksa direkt ekle diyemeyiz
+        if (Inventory.Instance == null)
+        {
+            Debug.LogWarning("⚠️ Inventory bulunamadı!");
+            return;
+        }
 
         if (Inventory.Instance.AddItem(itemData, amount))
         {
             Debug.Log($"✅ TOPLANDI: {itemData.itemName} x{amount}");
             Destroy(promptCanvas);
             Destroy(gameObject);
+        }
+        else
+        {
+            Debug.Log("❌ Envanter dolu!");
         }
     }
 
@@ -96,7 +106,7 @@ public class ItemPickup : MonoBehaviour
 
         RectTransform cRT = promptCanvas.GetComponent<RectTransform>();
         cRT.sizeDelta = new Vector2(2f, 0.5f);
-        promptCanvas.transform.localScale = Vector3.one * 0.01f;
+        promptCanvas.transform.localScale = Vector3.one * 0.02f;
 
         // Arka plan
         GameObject bg = new GameObject("BG");

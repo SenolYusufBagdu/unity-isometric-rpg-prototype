@@ -5,7 +5,7 @@ using System.Collections;
 public class SwordDamage : MonoBehaviour
 {
     [Header("Hasar Ayarları")]
-    public float damage = 25f;
+    public float damage = 50f;
     public float hitCooldown = 0.3f;
 
     [Header("Knockback Ayarları")]

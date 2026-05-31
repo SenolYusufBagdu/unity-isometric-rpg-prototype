@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 
+[RequireComponent(typeof(AudioSource))]
 public class PlayerMouseRotation : MonoBehaviour
 {
     [Header("Ayarlar")]
@@ -8,14 +9,30 @@ public class PlayerMouseRotation : MonoBehaviour
     public float stopDistance = 0.5f;
     public float moveSpeed = 3f;
 
+    // ─────────────────────────────────────────────────────────
+    // 🔊 SES SLOTLARI
+    // ─────────────────────────────────────────────────────────
+    [Header("─ Sesler: Ayak")]
+    [Tooltip("Ayak sesi klipleri — hareket ederken rastgele biri çalar\nEn az 2-3 farklı klip ekle")]
+    public AudioClip[] footstepSounds;
+
+    [Tooltip("Ayak sesi aralığı (saniye) — 0.35-0.45 arası idealdir")]
+    public float footstepInterval = 0.4f;
+
+    [Range(0f, 1f)]
+    public float footstepVolume = 0.6f;
+    // ─────────────────────────────────────────────────────────
+
     private Camera mainCamera;
     private Rigidbody rb;
     private Animator animator;
     private PlayerDash playerDash;
     private PlayerAttack playerAttack;
+    private AudioSource audioSource;
 
     private Vector3 clickTarget;
     private bool isMovingToTarget = false;
+    private float footstepTimer = 0f;
 
     public bool IsMovingToTarget => isMovingToTarget;
     public Vector3 ClickTarget => clickTarget;
@@ -25,8 +42,6 @@ public class PlayerMouseRotation : MonoBehaviour
     public void CancelTarget()
     {
         isMovingToTarget = false;
-        if (rb != null)
-            rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
     }
 
     void Start()
@@ -36,22 +51,21 @@ public class PlayerMouseRotation : MonoBehaviour
         animator = GetComponent<Animator>();
         playerDash = GetComponent<PlayerDash>();
         playerAttack = GetComponent<PlayerAttack>();
+        audioSource = GetComponent<AudioSource>();
+        audioSource.playOnAwake = false;
     }
 
     void Update()
     {
-        // Dash sırasında hiç dokunma
         if (playerDash != null && playerDash.IsDashing) return;
 
-        // Büyü veya nişan sırasında kilitle
-        if (playerAttack != null && (playerAttack.IsCasting || playerAttack.IsAiming))
+        if (playerAttack != null && playerAttack.IsAiming)
         {
             animator.SetFloat(SpeedHash, 0f);
             isMovingToTarget = false;
             return;
         }
 
-        // Sol tık ile hedef belirle
         if (Input.GetMouseButton(0))
         {
             Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
@@ -64,16 +78,38 @@ public class PlayerMouseRotation : MonoBehaviour
         }
 
         Vector3 hVel = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
-        animator.SetFloat(SpeedHash, hVel.magnitude);
+        float speed = hVel.magnitude;
+        animator.SetFloat(SpeedHash, speed);
+
+        // 🔊 Ayak sesi — dash sırasında çalmasın
+        if (playerDash == null || !playerDash.IsDashing)
+            HandleFootsteps(speed);
+    }
+
+    void HandleFootsteps(float speed)
+    {
+        if (footstepSounds == null || footstepSounds.Length == 0) return;
+
+        if (speed < 0.5f)
+        {
+            footstepTimer = 0f;
+            return;
+        }
+
+        footstepTimer -= Time.deltaTime;
+        if (footstepTimer <= 0f)
+        {
+            footstepTimer = footstepInterval;
+            AudioClip clip = footstepSounds[Random.Range(0, footstepSounds.Length)];
+            audioSource.PlayOneShot(clip, footstepVolume);
+        }
     }
 
     void FixedUpdate()
     {
-        // Dash sırasında hiç dokunma — PlayerDash kendi hızını yönetiyor
         if (playerDash != null && playerDash.IsDashing) return;
 
-        // Büyü veya nişan sırasında anında durdur
-        if (playerAttack != null && (playerAttack.IsCasting || playerAttack.IsAiming))
+        if (playerAttack != null && playerAttack.IsAiming)
         {
             rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
             return;

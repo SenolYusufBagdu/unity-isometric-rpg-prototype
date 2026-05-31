@@ -17,10 +17,10 @@ public class Projectile : MonoBehaviour
     public float distance = 30f;
 
     [Header("Hasar")]
-    public int damage = 30;
+    public int damage = 50;
 
     [Header("Knockback")]
-    public float knockbackDistance = 3.5f;
+    public float knockbackDistance = 4.5f;
     public float knockbackDuration = 0.25f;
 
     private float traveledDistance = 0f;

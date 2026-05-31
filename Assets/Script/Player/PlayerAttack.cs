@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 
 [RequireComponent(typeof(Animator))]
+[RequireComponent(typeof(AudioSource))]
 public class PlayerAttack : MonoBehaviour
 {
     [Header("Kılıç (E tuşu)")]
@@ -14,15 +15,15 @@ public class PlayerAttack : MonoBehaviour
     public Transform arrowFirePoint;
     public float arrowCooldown = 0.6f;
     public float arrowSpeed = 25f;
-    public float arrowDamage = 20f;
-    public float arrowSpawnDelay = 0.3f; // Animasyonun kaçıncı saniyesinde ok fırlar
+    public float arrowDamage = 50f;
+    public float arrowSpawnDelay = 0.3f;
 
-    [Header("1. Büyü - Q (sağ tık + Q, 1.5sn cooldown)")]
+    [Header("1. Büyü - Q")]
     public GameObject projectilePrefab;
     public Transform firePoint;
     public float projectileCooldown = 1.5f;
 
-    [Header("2. Büyü - W (sağ tık + W, 1.5sn cooldown)")]
+    [Header("2. Büyü - W")]
     public GameObject fireballPrefab;
     public Transform fireballPoint;
     public float fireballCooldown = 1.5f;
@@ -31,22 +32,42 @@ public class PlayerAttack : MonoBehaviour
     public LayerMask groundLayer;
     public AimIndicator aimIndicator;
 
+    [Header("─ Sesler: Kılıç")]
+    public AudioClip swordSwingSound;
+    public AudioClip swordDrawSound;
+    public AudioClip swordSheatheSound;
+
+    [Header("─ Sesler: Ok")]
+    public AudioClip bowFireSound;
+
+    [Header("─ Sesler: Büyü")]
+    public AudioClip spell1Sound;
+    public AudioClip spell2Sound;
+    public AudioClip aimStartSound;
+
+    [Header("─ Ses Ayarları")]
+    [Range(0f, 1f)] public float soundVolume = 1f;
+
+    // ── Büyü hasar çarpanı — PlayerLevelSystem tarafından artırılır ──
+    [HideInInspector] public float spellDamageMultiplier = 2f;
+
     // Public properties
     public bool IsCasting => isCasting;
     public bool IsAiming => isAiming;
     public bool IsAttacking => isAttacking;
     public bool IsBowMode => isBowMode;
+
     public float LastProjectileTime => lastProjectileTime;
     public float LastFireballTime => lastFireballTime;
     public float ProjectileCooldown => projectileCooldown;
     public float FireballCooldown => fireballCooldown;
 
-    // Private
     private Animator animator;
     private PlayerMouseRotation mouseRot;
     private Rigidbody rb;
     private SwordDamage swordDamage;
     private Camera mainCamera;
+    private AudioSource audioSource;
 
     private bool isCasting = false;
     private bool isAiming = false;
@@ -76,23 +97,27 @@ public class PlayerAttack : MonoBehaviour
         mouseRot = GetComponent<PlayerMouseRotation>();
         rb = GetComponent<Rigidbody>();
         mainCamera = Camera.main;
+        audioSource = GetComponent<AudioSource>();
+        audioSource.playOnAwake = false;
 
         if (swordObject != null)
         {
-            swordObject.SetActive(true); // Kılıcın oyun başında aktif olmasını garanti ettik
+            swordObject.SetActive(true);
             swordDamage = swordObject.GetComponent<SwordDamage>();
             swordDamage?.DisableDamage();
         }
 
         if (bowObject != null)
-        {
-            bowObject.SetActive(false); // Yayın oyun başında KESİN OLARAK kapalı olmasını sağladık
-        }
+            bowObject.SetActive(false);
 
         if (aimIndicator == null)
             aimIndicator = GetComponent<AimIndicator>();
+    }
 
-        Debug.Log("✅ PLAYER ATTACK: Hazır.");
+    void PlaySound(AudioClip clip)
+    {
+        if (clip == null || audioSource == null) return;
+        audioSource.PlayOneShot(clip, soundVolume);
     }
 
     void Update()
@@ -101,18 +126,14 @@ public class PlayerAttack : MonoBehaviour
             isAttacking = false;
 
         if (Input.GetMouseButtonDown(0) && isCasting && !isAiming)
-        {
             isCasting = false;
-        }
 
-        // A tuşu → Ok moduna geç
         if (Input.GetKeyDown(KeyCode.A) && !isBowMode && !isSwitching && !isCasting && !isAiming)
         {
             StartCoroutine(SwitchToBow());
             return;
         }
 
-        // A tuşu (ok modundayken) → ok at
         if (Input.GetKeyDown(KeyCode.A) && isBowMode && !isSwitching)
         {
             if (Time.time >= lastArrowTime + arrowCooldown)
@@ -120,22 +141,13 @@ public class PlayerAttack : MonoBehaviour
                 lastArrowTime = Time.time;
                 RotateTowardsMouse();
                 animator.SetTrigger(ArrowHash);
-
-                // Animation Event yerine Invoke — arrowSpawnDelay saniye sonra oku fırlat
+                PlaySound(bowFireSound);
                 CancelInvoke(nameof(SpawnArrow));
                 Invoke(nameof(SpawnArrow), arrowSpawnDelay);
-
-                Debug.Log("🏹 Ok ateşlendi!");
-            }
-            else
-            {
-                float kalan = (lastArrowTime + arrowCooldown) - Time.time;
-                Debug.Log($"⏳ Ok cooldown: {kalan:F1}s kaldı");
             }
             return;
         }
 
-        // E tuşu (ok modundayken) → kılıç moduna dön
         if (Input.GetKeyDown(KeyCode.E) && isBowMode && !isSwitching)
         {
             StartCoroutine(SwitchToSword());
@@ -147,49 +159,43 @@ public class PlayerAttack : MonoBehaviour
         if (!isBowMode) HandleCombo();
     }
 
-    // ── MOD GEÇİŞLERİ ──────────────────────────────────────
-
     System.Collections.IEnumerator SwitchToBow()
     {
         isSwitching = true;
-        LockMovement();
-        Debug.Log("🗡→🏹 Kılıç kılıfa giriyor...");
-
+        LockMovementFull();
+        PlaySound(swordSheatheSound);
         animator.SetTrigger(SwordSheatheHash);
         yield return new WaitForSeconds(0.05f);
 
-        float sheatheWait = GetAnimationLength("SwordSheathe");
-        if (sheatheWait <= 0f) sheatheWait = 0.6f;
-        yield return new WaitForSeconds(sheatheWait);
+        float w = GetAnimationLength("SwordSheathe");
+        if (w <= 0f) w = 0.6f;
+        yield return new WaitForSeconds(w);
 
         if (swordObject != null) swordObject.SetActive(false);
         if (bowObject != null) bowObject.SetActive(true);
 
         isBowMode = true;
         isSwitching = false;
-        Debug.Log("✅ Yay modu aktif!");
     }
 
     System.Collections.IEnumerator SwitchToSword()
     {
         isSwitching = true;
-        LockMovement();
-        Debug.Log("🏹→🗡 Kılıç çekiliyor...");
+        LockMovementFull();
 
         if (bowObject != null) bowObject.SetActive(false);
         if (swordObject != null) swordObject.SetActive(true);
         animator.SetTrigger(SwordDrawHash);
-
+        PlaySound(swordDrawSound);
         yield return new WaitForSeconds(0.05f);
 
-        float drawWait = GetAnimationLength("SwordDraw");
-        if (drawWait <= 0f) drawWait = 0.5f;
-        yield return new WaitForSeconds(drawWait);
+        float w = GetAnimationLength("SwordDraw");
+        if (w <= 0f) w = 0.5f;
+        yield return new WaitForSeconds(w);
 
         isBowMode = false;
         isSwitching = false;
         comboStep = 0;
-        Debug.Log("✅ Kılıç modu aktif!");
     }
 
     float GetAnimationLength(string stateName)
@@ -202,50 +208,25 @@ public class PlayerAttack : MonoBehaviour
         return 0f;
     }
 
-    // ── BÜYÜ / NİŞAN ALMA ───────────────────────────────────
-
     void HandleAiming()
     {
         if (Input.GetMouseButtonDown(1))
         {
             isAiming = true;
-            queuedSpell = 0;
-            LockMovement();
+            PlaySound(aimStartSound);
         }
 
         if (isAiming)
         {
-            LockMovement();
+            LockMovementFull();
             RotateTowardsMouse();
             UpdateAimIndicator();
 
-            if (Input.GetKeyDown(KeyCode.Q))
-            {
-                if (Time.time >= lastProjectileTime + projectileCooldown)
-                {
-                    queuedSpell = 1;
-                    Debug.Log("⚡ Q sıraya alındı");
-                }
-                else
-                {
-                    float kalan = (lastProjectileTime + projectileCooldown) - Time.time;
-                    Debug.Log($"⏳ Q cooldown: {kalan:F1}s kaldı");
-                }
-            }
+            if (Input.GetKeyDown(KeyCode.Q) && Time.time >= lastProjectileTime + projectileCooldown)
+                queuedSpell = 1;
 
-            if (Input.GetKeyDown(KeyCode.W))
-            {
-                if (Time.time >= lastFireballTime + fireballCooldown)
-                {
-                    queuedSpell = 2;
-                    Debug.Log("🔥 W sıraya alındı");
-                }
-                else
-                {
-                    float kalan = (lastFireballTime + fireballCooldown) - Time.time;
-                    Debug.Log($"⏳ W cooldown: {kalan:F1}s kaldı");
-                }
-            }
+            if (Input.GetKeyDown(KeyCode.W) && Time.time >= lastFireballTime + fireballCooldown)
+                queuedSpell = 2;
         }
 
         if (Input.GetMouseButtonUp(1) && isAiming)
@@ -258,17 +239,36 @@ public class PlayerAttack : MonoBehaviour
                 lastProjectileTime = Time.time;
                 StartCast();
                 animator.SetTrigger(Spell1Hash);
-                Debug.Log("⚡ Q ateşlendi!");
+                PlaySound(spell1Sound);
             }
             else if (queuedSpell == 2)
             {
                 lastFireballTime = Time.time;
                 StartCast();
                 animator.SetTrigger(Spell2Hash);
-                Debug.Log("🔥 W ateşlendi!");
+                PlaySound(spell2Sound);
             }
 
             queuedSpell = 0;
+        }
+    }
+
+    void HandleCombo()
+    {
+        if (isAiming) return;
+
+        if (comboStep == 1 && Time.time > lastAttackTime + comboWindow)
+            comboStep = 0;
+
+        if (Input.GetKeyDown(KeyCode.E) && Time.time >= lastAttackTime + attackCooldown)
+        {
+            lastAttackTime = Time.time;
+            isAttacking = true;
+            RotateTowardsMouse();
+            PlaySound(swordSwingSound);
+
+            if (comboStep == 0) { comboStep = 1; animator.SetTrigger(Attack1Hash); }
+            else { comboStep = 0; animator.SetTrigger(Attack2Hash); }
         }
     }
 
@@ -278,17 +278,10 @@ public class PlayerAttack : MonoBehaviour
 
         if (groundLayer.value != 0 &&
             Physics.Raycast(ray, out RaycastHit hitGround, 200f, groundLayer))
-        {
-            point = hitGround.point;
-            return true;
-        }
+        { point = hitGround.point; return true; }
 
         if (Physics.Raycast(ray, out RaycastHit hitAny, 200f))
-        {
-            point = hitAny.point;
-            point.y = transform.position.y;
-            return true;
-        }
+        { point = hitAny.point; point.y = transform.position.y; return true; }
 
         point = Vector3.zero;
         return false;
@@ -311,34 +304,7 @@ public class PlayerAttack : MonoBehaviour
             aimIndicator.Show(hit);
     }
 
-    void HandleCombo()
-    {
-        if (isAiming) return;
-
-        if (comboStep == 1 && Time.time > lastAttackTime + comboWindow)
-            comboStep = 0;
-
-        if (Input.GetKeyDown(KeyCode.E) && Time.time >= lastAttackTime + attackCooldown)
-        {
-            lastAttackTime = Time.time;
-            isAttacking = true;
-
-            if (comboStep == 0)
-            {
-                comboStep = 1;
-                animator.SetTrigger(Attack1Hash);
-                Debug.Log("⚔️ Attack 1");
-            }
-            else
-            {
-                comboStep = 0;
-                animator.SetTrigger(Attack2Hash);
-                Debug.Log("⚔️⚔️ Attack 2");
-            }
-        }
-    }
-
-    void LockMovement()
+    void LockMovementFull()
     {
         mouseRot?.CancelTarget();
         if (rb != null) rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
@@ -347,43 +313,44 @@ public class PlayerAttack : MonoBehaviour
     void StartCast()
     {
         isCasting = true;
-        LockMovement();
+        LockMovementFull();
     }
 
-    // ── ANIMATION EVENTS ────────────────────────────────────
+    public void OnAttackEnd() => isAttacking = false;
+    public void OnSpellEnd() => isCasting = false;
 
-    public void OnAttackEnd() { isAttacking = false; }
-    public void OnSpellEnd() { isCasting = false; }
-
+    // ── Büyü spawn — çarpanı uygula ──
     public void SpawnProjectile()
     {
         if (projectilePrefab == null || firePoint == null) return;
-        Instantiate(projectilePrefab, firePoint.position, transform.rotation);
-        Debug.Log("⚡ Projektil ateşlendi!");
+        GameObject go = Instantiate(projectilePrefab, firePoint.position, transform.rotation);
+        Projectile p = go.GetComponent<Projectile>();
+        if (p != null) p.damage = Mathf.RoundToInt(p.damage * spellDamageMultiplier);
     }
 
     public void SpawnFireball()
     {
         if (fireballPrefab == null || fireballPoint == null) return;
-        Instantiate(fireballPrefab, fireballPoint.position, transform.rotation);
-        Debug.Log("🔥 Alev topu ateşlendi!");
+        GameObject go = Instantiate(fireballPrefab, fireballPoint.position, transform.rotation);
+        Projectile p = go.GetComponent<Projectile>();
+        if (p != null) p.damage = Mathf.RoundToInt(p.damage * spellDamageMultiplier);
     }
 
-    public void EnableSwordDamage() { swordDamage?.EnableDamage(); }
-    public void DisableSwordDamage() { swordDamage?.DisableDamage(); }
-
-    // ── OK SPAWN (Invoke ile çağrılır) ──────────────────────
+    public void EnableSwordDamage() => swordDamage?.EnableDamage();
+    public void DisableSwordDamage() => swordDamage?.DisableDamage();
 
     public void SpawnArrow()
     {
-        if (arrowPrefab == null)
+        if (arrowPrefab == null) return;
+
+        if (ArrowCounter.Instance != null)
         {
-            Debug.LogError("❌ arrowPrefab atanmamış! PlayerAttack Inspector'ını kontrol et.");
-            return;
+            if (ArrowCounter.Instance.GetArrowCount() <= 0) return;
+            ArrowCounter.Instance.UseArrow();
         }
 
-        Transform spawnPoint = arrowFirePoint != null ? arrowFirePoint : transform;
-        GameObject arrowGO = Instantiate(arrowPrefab, spawnPoint.position, transform.rotation);
+        Transform sp = arrowFirePoint != null ? arrowFirePoint : transform;
+        GameObject arrowGO = Instantiate(arrowPrefab, sp.position, transform.rotation);
 
         ArrowProjectile ap = arrowGO.GetComponent<ArrowProjectile>();
         if (ap != null)
@@ -391,7 +358,5 @@ public class PlayerAttack : MonoBehaviour
             ap.damage = arrowDamage;
             ap.speed = arrowSpeed;
         }
-
-        Debug.Log("🏹 Ok fırlatıldı!");
     }
 }

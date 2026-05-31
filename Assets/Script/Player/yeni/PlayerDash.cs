@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(AudioSource))]
 public class PlayerDash : MonoBehaviour
 {
     [Header("Dash Ayarları")]
@@ -15,10 +16,22 @@ public class PlayerDash : MonoBehaviour
     [Header("Referanslar")]
     public DashHitbox dashHitbox;
 
+    // ─────────────────────────────────────────────────────────
+    // 🔊 SES SLOTLARI
+    // ─────────────────────────────────────────────────────────
+    [Header("─ Sesler")]
+    [Tooltip("Dash başlangıç sesi — Shift'e basınca çalar\n(hızlı whoosh / rüzgar kesme sesi)")]
+    public AudioClip dashSound;
+
+    [Range(0f, 1f)]
+    public float soundVolume = 1f;
+    // ─────────────────────────────────────────────────────────
+
     private Rigidbody rb;
     private Animator animator;
     private PlayerMouseRotation mouseRot;
     private PlayerHealth playerHealth;
+    private AudioSource audioSource;
 
     private bool isDashing;
     private float dashTimer;
@@ -36,6 +49,8 @@ public class PlayerDash : MonoBehaviour
         animator = GetComponent<Animator>();
         mouseRot = GetComponent<PlayerMouseRotation>();
         playerHealth = GetComponent<PlayerHealth>();
+        audioSource = GetComponent<AudioSource>();
+        audioSource.playOnAwake = false;
 
         if (dashHitbox != null)
             dashHitbox.SetActive(false);
@@ -79,6 +94,10 @@ public class PlayerDash : MonoBehaviour
 
         animator?.SetTrigger(DashHash);
 
+        // 🔊 Dash sesi
+        if (dashSound != null && audioSource != null)
+            audioSource.PlayOneShot(dashSound, soundVolume);
+
         if (dashVFXPrefab != null)
         {
             activeVFX = Instantiate(dashVFXPrefab, transform.position, Quaternion.identity);
@@ -104,7 +123,6 @@ public class PlayerDash : MonoBehaviour
         isDashing = false;
         rb.linearVelocity = new Vector3(0f, rb.linearVelocity.y, 0f);
 
-        // Dash bitince mouse hedefini sıfırla — geri gitmesin
         if (mouseRot != null)
             mouseRot.CancelTarget();
 

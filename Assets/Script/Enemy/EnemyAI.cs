@@ -2,180 +2,324 @@
 using UnityEngine.AI;
 
 /// <summary>
-/// EnemyAI.cs (NavMesh versiyonu) → Enemy GameObject'ine ekle
-/// Mevcut mantık korundu, sadece hareket NavMeshAgent ile yapılıyor
-/// 
-/// GEREKSİNİMLER:
-/// - NavMeshAgent component (Rigidbody'yi SİL)
-/// - EnemyHealth.cs
-/// - Sahne NavMesh'i bake edilmiş olmalı
+/// EnemyAI.cs — Tüm hareket ve saldırı mantığı burada.
+/// Ses slotları eklendi.
+///
+/// ÖNEMLİ: EnemyHealth scriptine şu iki event eklenmiş olmalı:
+///   public System.Action OnHurt;
+///   public System.Action OnDied;
+/// TakeDamage() içinde OnHurt?.Invoke(), Die() içinde OnDied?.Invoke() çağır.
 /// </summary>
 [RequireComponent(typeof(NavMeshAgent))]
+[RequireComponent(typeof(AudioSource))]
 public class EnemyAI : MonoBehaviour
 {
-    [Header("Algılama")]
-    public float detectionRange = 10f;
-    public float attackRange = 2f;
+    [Header("─ Algılama")]
+    [SerializeField] public float detectionRange = 35f;
+    [SerializeField] public float attackRange = 2f;
 
-    [Header("Saldırı")]
-    public float attackCooldown = 2f;
-    public float attackDamage = 15f;
-    public float attackLungeForce = 3f;
+    [Header("─ Player Interrupt")]
+    [Tooltip("Player bu mesafeye girerse enemy kaleyi bırakıp player'a saldırır")]
+    [SerializeField] public float playerInterruptRange = 6f;
 
-    [Header("NavMesh Ayarları")]
-    public float moveSpeed = 3f;          // NavMeshAgent speed
-    public float acceleration = 8f;       // Hızlanma
-    public float angularSpeed = 300f;     // Dönüş hızı
-    public float stoppingDistance = 1.5f; // Hedefe ne kadar yaklaşınca dursun
+    [Header("─ Player Saldırı")]
+    [SerializeField] public float attackCooldown = 2f;
+    [SerializeField] public float attackDamage = 15f;
+    [SerializeField] public float attackLungeForce = 3f;
 
-    // Referanslar
-    public Transform player;
+    [Header("─ Kale Saldırı")]
+    [SerializeField] public float castleAttackRange = 3.5f;
+    [SerializeField] public float castleAttackDamage = 20f;
+    [SerializeField] public float castleAttackCooldown = 2f;
+    [SerializeField] public float castleSurfaceOffset = 1.5f;
+
+    [Header("─ NavMesh")]
+    [SerializeField] public float moveSpeed = 3f;
+    [SerializeField] public float acceleration = 8f;
+    [SerializeField] public float angularSpeed = 300f;
+    [SerializeField] public float stoppingDistance = 1.5f;
+
+    [HideInInspector] public float playerTargetChance = 0f;
+
+    [Header("─ Referanslar (otomatik bulunur)")]
+    [SerializeField] public Transform player;
+    [SerializeField] public CastleHealth castle;
+
+    // ─────────────────────────────────────────────────────────
+    // 🔊 SES SLOTLARI
+    // ─────────────────────────────────────────────────────────
+    [Header("─ Sesler: Saldırı")]
+    [Tooltip("Player'a saldırı sesi — her vurduğunda çalar")]
+    public AudioClip attackPlayerSound;
+
+    [Tooltip("Kaleye saldırı sesi — kaleye her vurduğunda çalar\n(darbe + taş/ahşap çarpma sesi idealdir)")]
+    public AudioClip attackCastleSound;
+
+    [Header("─ Sesler: Hasar / Ölüm")]
+    [Tooltip("Hasar alma sesi — enemy vurulunca çalar\n(acı çekme, inleme sesi)")]
+    public AudioClip hurtSound;
+
+    [Tooltip("Ölüm sesi — enemy ölünce çalar\n(son nefes, düşme sesi)")]
+    public AudioClip deathSound;
+
+    [Header("─ Sesler: Ambient")]
+    [Tooltip("Growl / nefes sesi — periyodik olarak çalar\n(enemy'nin varlığını hissettiren ambient ses)\nOpsiyonel, bırakabilirsin")]
+    public AudioClip growlSound;
+
+    [Tooltip("Growl sesi kaç saniyede bir çalar")]
+    public float growlInterval = 6f;
+
+    [Range(0f, 1f)]
+    public float soundVolume = 1f;
+    // ─────────────────────────────────────────────────────────
+
     private NavMeshAgent agent;
     private Animator animator;
     private EnemyHealth enemyHealth;
+    private AudioSource audioSource;
 
-    // State
     private float lastAttackTime;
-    private bool isAttacking;
+    private float lastCastleAttackTime;
+    private float lastGrowlTime;
+    private bool isAttackingPlayer;
+
+    private float castleRadius = 3f;
 
     private static readonly int SpeedHash = Animator.StringToHash("Speed");
     private static readonly int AttackHash = Animator.StringToHash("Attack");
-    private static readonly int DeathHash = Animator.StringToHash("Death");
 
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
-
-        // ÇOK ÖNEMLİ DEĞİŞİKLİK: Sadece ana objeye değil, karakterin asıl kemiklerinin
-        // (Avatarının) olduğu iç (Child) objelere de bakıp Animator'ı oradan alır!
         animator = GetComponentInChildren<Animator>();
+        enemyHealth = GetComponent<EnemyHealth>();
+        audioSource = GetComponent<AudioSource>();
+        audioSource.playOnAwake = false;
+        audioSource.spatialBlend = 1f;   // 3D ses
+        audioSource.maxDistance = 20f;
+        audioSource.rolloffMode = AudioRolloffMode.Linear;
 
-        // Eğer Animator hala bulunamadıysa uyarı ver
-        if (animator == null)
+        // EnemyHealth ses hookları — EnemyHealth'te OnHurt ve OnDied event'i olmalı
+        if (enemyHealth != null)
         {
-            Debug.LogError("❌ ENEMY: Karakterin içinde hiçbir Animator bulunamadı! Boss modelini kontrol et.");
+            enemyHealth.OnHurt += () => PlaySound(hurtSound);
+            enemyHealth.OnDied += () => PlaySound(deathSound);
         }
 
-        enemyHealth = GetComponent<EnemyHealth>();
-
-        // NavMeshAgent ayarları
         agent.speed = moveSpeed;
         agent.acceleration = acceleration;
         agent.angularSpeed = angularSpeed;
         agent.stoppingDistance = stoppingDistance;
-        agent.updateRotation = true;  // Agent otomatik dönsün
+        agent.updateRotation = true;
+        agent.autoBraking = true;
 
-        // Player tag ile bul
         if (player == null)
         {
-            GameObject p = GameObject.FindGameObjectWithTag("Player");
+            var p = GameObject.FindGameObjectWithTag("Player");
             if (p != null) player = p.transform;
-            else Debug.LogError("❌ ENEMY: Player tag'li obje bulunamadı!");
+            else Debug.LogError($"❌ {name}: 'Player' tag'li obje yok!");
         }
+
+        if (castle == null) castle = CastleHealth.Instance;
+
+        if (castle != null)
+        {
+            var col = castle.GetComponent<Collider>();
+            if (col != null)
+                castleRadius = col.bounds.extents.magnitude * 0.6f;
+            else
+                castleRadius = 3f;
+        }
+
+        lastCastleAttackTime = Time.time - Random.Range(0f, castleAttackCooldown);
+        lastAttackTime = Time.time - Random.Range(0f, attackCooldown);
+        lastGrowlTime = Time.time + Random.Range(0f, growlInterval);
+
+        if (!agent.isOnNavMesh)
+            Debug.LogError($"❌ {name}: NavMesh üzerinde değil!");
+    }
+
+    public void DecideTarget()
+    {
+        Debug.Log($"[{name}] Hedef: KALE (player yaklaşınca interrupt)");
+    }
+
+    void PlaySound(AudioClip clip)
+    {
+        if (clip == null || audioSource == null) return;
+        audioSource.PlayOneShot(clip, soundVolume);
     }
 
     void Update()
     {
         if (enemyHealth != null && enemyHealth.isDead) return;
-        if (player == null) return;
+        if (!agent.isOnNavMesh) return;
 
-        // Eğer animator bulunamadıysa kodu durdur ki hata spamı (NullReference) yapmasın
-        if (animator == null) return;
+        // 🔊 Periyodik growl
+        if (growlSound != null && Time.time >= lastGrowlTime + growlInterval)
+        {
+            lastGrowlTime = Time.time;
+            PlaySound(growlSound);
+        }
 
-        float distanceToPlayer = Vector3.Distance(transform.position, player.position);
+        if (isAttackingPlayer && Time.time >= lastAttackTime + attackCooldown)
+            isAttackingPlayer = false;
 
-        // Güvenlik sigortası
-        if (isAttacking && Time.time >= lastAttackTime + attackCooldown)
-            isAttacking = false;
+        if (isAttackingPlayer) return;
 
-        if (isAttacking) return;
+        // INTERRUPT: player yakınsa kovala
+        if (player != null)
+        {
+            float distToPlayer = Vector3.Distance(transform.position, player.position);
+            if (distToPlayer <= playerInterruptRange)
+            {
+                if (distToPlayer <= attackRange)
+                {
+                    StopAgent();
+                    FaceTarget(player.position);
+                    TryAttackPlayer();
+                }
+                else
+                {
+                    agent.isStopped = false;
+                    agent.stoppingDistance = stoppingDistance;
+                    agent.SetDestination(player.position);
+                }
+                UpdateAnimator();
+                return;
+            }
+        }
 
-        // State machine — mantık aynı
-        if (distanceToPlayer <= attackRange)
-            StopAndAttack();
-        else if (distanceToPlayer <= detectionRange)
-            ChasePlayer();
-        else
-            Idle();
+        if (castle != null && !castle.isDestroyed)
+            HandleCastleTarget();
+        else if (player != null)
+            HandlePlayerTarget();
 
         UpdateAnimator();
     }
 
-    void ChasePlayer()
+    void HandlePlayerTarget()
     {
-        agent.isStopped = false;
-        agent.SetDestination(player.position);
+        float dist = Vector3.Distance(transform.position, player.position);
+
+        if (dist <= attackRange)
+        {
+            StopAgent();
+            FaceTarget(player.position);
+            TryAttackPlayer();
+        }
+        else if (dist <= detectionRange)
+        {
+            agent.isStopped = false;
+            agent.stoppingDistance = stoppingDistance;
+            agent.SetDestination(player.position);
+        }
+        else
+        {
+            agent.isStopped = true;
+        }
     }
 
-    void StopAndAttack()
+    void TryAttackPlayer()
     {
-        // Dur
-        agent.isStopped = true;
-        agent.velocity = Vector3.zero;
+        if (Time.time < lastAttackTime + attackCooldown) return;
 
-        // Oyuncuya dön
+        lastAttackTime = Time.time;
+        isAttackingPlayer = true;
+        animator?.SetTrigger(AttackHash);
+        PlaySound(attackPlayerSound); // 🔊 Player'a saldırı sesi
+
         Vector3 dir = (player.position - transform.position).normalized;
         dir.y = 0f;
-        if (dir != Vector3.zero)
-            transform.rotation = Quaternion.LookRotation(dir);
+        StartCoroutine(LungeCoroutine(dir));
+    }
 
-        if (Time.time >= lastAttackTime + attackCooldown)
+    void HandleCastleTarget()
+    {
+        Vector3 castleEdgePoint = GetCastleSurfacePoint();
+        float distToEdge = Vector3.Distance(transform.position, castleEdgePoint);
+
+        if (distToEdge <= castleAttackRange)
         {
-            lastAttackTime = Time.time;
-            isAttacking = true;
-            animator.SetTrigger(AttackHash);
-
-            // Lunge: NavMesh ile uyumlu küçük ileri atılma
-            Vector3 lungeDir = dir;
-            StartCoroutine(LungeCoroutine(lungeDir));
-
-            Debug.Log("⚔️ ENEMY: Saldırı!");
+            StopAgent();
+            FaceTarget(castle.transform.position);
+            TryAttackCastle();
         }
+        else
+        {
+            agent.isStopped = false;
+            agent.stoppingDistance = castleSurfaceOffset;
+            agent.SetDestination(castleEdgePoint);
+        }
+    }
+
+    Vector3 GetCastleSurfacePoint()
+    {
+        Vector3 toEnemy = (transform.position - castle.transform.position).normalized;
+        Vector3 surfacePoint = castle.transform.position + toEnemy * (castleRadius + castleSurfaceOffset);
+        surfacePoint.y = transform.position.y;
+
+        if (NavMesh.SamplePosition(surfacePoint, out NavMeshHit hit, 3f, NavMesh.AllAreas))
+            return hit.position;
+
+        return surfacePoint;
+    }
+
+    void TryAttackCastle()
+    {
+        if (Time.time < lastCastleAttackTime + castleAttackCooldown) return;
+
+        lastCastleAttackTime = Time.time;
+        castle.TakeDamage(castleAttackDamage);
+        animator?.SetTrigger(AttackHash);
+        PlaySound(attackCastleSound); // 🔊 Kaleye saldırı sesi
+        Debug.Log($"🏰 [{name}] kaleye vurdu: -{castleAttackDamage} (kalan: {castle.currentHealth:F0})");
+    }
+
+    void StopAgent()
+    {
+        agent.isStopped = true;
+        agent.velocity = Vector3.zero;
+    }
+
+    void FaceTarget(Vector3 pos)
+    {
+        Vector3 dir = (pos - transform.position).normalized;
+        dir.y = 0f;
+        if (dir.sqrMagnitude > 0.001f)
+            transform.rotation = Quaternion.LookRotation(dir);
+    }
+
+    void UpdateAnimator()
+    {
+        if (animator == null) return;
+        float speed = agent.velocity.magnitude;
+        animator.SetFloat(SpeedHash, speed);
     }
 
     System.Collections.IEnumerator LungeCoroutine(Vector3 dir)
     {
-        agent.isStopped = true;
-        float elapsed = 0f;
-        float lungeDuration = 0.15f;
-
-        while (elapsed < lungeDuration)
+        float elapsed = 0f, dur = 0.15f;
+        while (elapsed < dur)
         {
-            agent.Move(dir * attackLungeForce * Time.deltaTime);
+            if (agent.isOnNavMesh)
+                agent.Move(dir * attackLungeForce * Time.deltaTime);
             elapsed += Time.deltaTime;
             yield return null;
         }
     }
 
-    void Idle()
-    {
-        agent.isStopped = true;
-        agent.velocity = Vector3.zero;
-    }
-
-    void UpdateAnimator()
-    {
-        // NavMeshAgent'ın gerçek hızını Animator'a ver
-        float speed = agent.velocity.magnitude;
-        animator.SetFloat(SpeedHash, speed);
-    }
-
-    // Animation Event
     public void DealDamageToPlayer()
     {
-        float dist = Vector3.Distance(transform.position, player.position);
-        if (dist <= attackRange + 0.5f)
-        {
+        if (player == null) return;
+        if (Vector3.Distance(transform.position, player.position) <= attackRange + 0.5f)
             player.GetComponent<PlayerHealth>()?.TakeDamage(attackDamage);
-            Debug.Log($"💢 ENEMY: Player'a {attackDamage} hasar!");
-        }
     }
 
-    // Animation Event
     public void OnAttackEnd()
     {
-        isAttacking = false;
-        agent.isStopped = false;
+        isAttackingPlayer = false;
+        if (agent.isOnNavMesh) agent.isStopped = false;
     }
 
     void OnDrawGizmosSelected()
@@ -184,5 +328,15 @@ public class EnemyAI : MonoBehaviour
         Gizmos.DrawWireSphere(transform.position, detectionRange);
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, attackRange);
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawWireSphere(transform.position, castleAttackRange);
+        Gizmos.color = Color.magenta;
+        Gizmos.DrawWireSphere(transform.position, playerInterruptRange);
+
+        if (castle != null)
+        {
+            Gizmos.color = new Color(0f, 1f, 1f, 0.2f);
+            Gizmos.DrawWireSphere(castle.transform.position, castleRadius + castleSurfaceOffset);
+        }
     }
 }
